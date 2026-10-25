@@ -37,9 +37,14 @@ static void explore(const std::string& target, int bound) {
     long explored = 0, fail = 0;
     Outcome first;
     do {
-        Outcome o = run_once(target, dfs, false);
-        explored++;
-        if (!o.failure.empty()) { if (fail++ == 0) first = o; }
+        try {
+            Outcome o = run_once(target, dfs, false);
+            explored++;
+            if (!o.failure.empty()) { if (fail++ == 0) first = o; }
+        } catch (std::exception& e) {
+            if (std::string(e.what()) != "Scheduler::run(): last not found")
+                std:: cout << e.what() << std::endl;
+        }
     } while (dfs.end_run());
     double sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
     std::printf("explored %ld schedules, %ld fail  (%.2f s)\n", explored, fail, sec);
@@ -53,6 +58,9 @@ static void randoms(const std::string& target, int count) {
         RandomPick r(seed);
         Outcome o = run_once(target, r, false);
         if (!o.failure.empty()) { fail++; if (first_seed < 0) first_seed = seed; }
+        if (seed % 10 == 0) {
+            std::cout << seed << " finished" << std::endl;
+        }
     }
     std::printf("random: %d seeds, %d fail (%.1f%%)\n", count, fail, 100.0 * fail / count);
     if (first_seed >= 0) {

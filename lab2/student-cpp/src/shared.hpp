@@ -2,13 +2,13 @@
 // Этап 1: общая переменная. Перед каждым чтением/записью — точка переключения (пауза планировщика),
 // после — строка в лог: чтение "<имя> -> <значение>", запись "<имя> = <значение>".
 // get_acquire/set_release для планировщика ведут себя так же, как get/set.
+#include <format>
 #include <stdexcept>
 #include <string>
 
 #include "scheduler.hpp"
 
 namespace sched {
-
 template <class T>
 class shared {
 public:
@@ -17,9 +17,21 @@ public:
     shared& operator=(const shared&) = delete;
 
     // Чтение с паузой перед ним.
-    T get() { throw std::logic_error("TODO этап 1: shared::get"); }
+    T get() {
+        point(true, true);
+        if (ctx->scheduler->logging) {
+            ctx->scheduler->log.push_back(std::format("{} {} -> {}", ctx->id, name_, v_));
+        }
+        return v_;
+    }
     // Запись с паузой перед ней.
-    void set(T) { throw std::logic_error("TODO этап 1: shared::set"); }
+    void set(T val) {
+        point(true, true);
+        if (ctx->scheduler->logging) {
+            ctx->scheduler->log.push_back(std::format("{} {} = {}", ctx->id, name_, val));
+        }
+        v_ = val;
+    }
     // То же, что get(): планировщик не моделирует порядки памяти.
     T get_acquire() { return get(); }
     // То же, что set(x).

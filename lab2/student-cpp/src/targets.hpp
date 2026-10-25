@@ -1,5 +1,6 @@
 #pragma once
 // Programs under test. setup() spawns threads; check() returns "" if the run is fine.
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -95,9 +96,9 @@ struct Collector : Target {
     bool step3, plain_inside, acqrel;
     int writers, n;
     shared<int> active{"active", 0};
-    std::vector<std::unique_ptr<shared<int>>> inside;
+    std::vector<std::shared_ptr<shared<int>>> inside;
     std::vector<int> inside_plain;
-    std::vector<std::unique_ptr<shared<long>>> cnt;   // cnt[w*2 + b]
+    std::vector<std::shared_ptr<shared<long>>> cnt;   // cnt[w*2 + b]
     long global = 0;
 
     Collector(const std::string& variant, int writers, int n) : writers(writers), n(n) {
@@ -107,9 +108,9 @@ struct Collector : Target {
         inside_plain.assign(writers, -1);
         for (int w = 0; w < writers; w++) {
             std::string W = "W" + std::to_string(w + 1);
-            inside.push_back(std::make_unique<shared<int>>("inside[" + W + "]", -1));
+            inside.push_back(std::make_shared<shared<int>>("inside[" + W + "]", -1));
             for (int b = 0; b < 2; b++)
-                cnt.push_back(std::make_unique<shared<long>>("cnt[" + W + "][" + std::to_string(b) + "]", 0));
+                cnt.push_back(std::make_shared<shared<long>>("cnt[" + W + "][" + std::to_string(b) + "]", 0));
         }
     }
 
